@@ -18,13 +18,11 @@ a:hover{text-decoration:underline}
 .container{max-width:1100px;margin:0 auto;padding:0 18px}
 .topbar{background:var(--navy);color:var(--white)}
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
-.brand{display:flex;flex-direction:column}
-.brand-link{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
-.brand-link:hover{text-decoration:none}
-.brand-logo{width:44px;height:44px;border-radius:8px;object-fit:contain;flex-shrink:0}
+.brand{display:flex;flex-direction:row;align-items:center;gap:10px}
+.brand-logo{width:44px;height:44px;object-fit:contain;border-radius:6px;flex-shrink:0}
 .brand-text{display:flex;flex-direction:column}
-.brand strong{font-size:16px;letter-spacing:.3px}
-.brand span{font-size:12px;color:rgba(255,255,255,.75)}
+.brand-text strong{font-size:16px;letter-spacing:.3px}
+.brand-text span{font-size:12px;color:rgba(255,255,255,.75)}
 
 .nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
 .nav a{color:rgba(255,255,255,.9);font-size:13px;padding:8px 10px;border-radius:6px}
@@ -132,6 +130,4 @@ footer li{color:rgba(255,255,255,.7);font-size:12px}
   .col-6{grid-column:span 12}
   footer .foot-grid{grid-template-columns:1fr}
   .step{grid-column:span 12}
-  .brand-logo{width:36px;height:36px}
-  .brand strong{font-size:14px}
 }
