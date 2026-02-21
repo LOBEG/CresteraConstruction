@@ -95,6 +95,13 @@ async function main() {
     { threshold: 0.12 }
   );
   document.querySelectorAll(".reveal").forEach((el) => reveal.observe(el));
+
+  // Avoid leaving below-the-fold content invisible in environments where
+  // intersection updates are delayed (e.g., full-page capture / print).
+  const REVEAL_FALLBACK_DELAY_MS = 1200;
+  setTimeout(() => {
+    document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in-view"));
+  }, REVEAL_FALLBACK_DELAY_MS);
 }
 
 main();
