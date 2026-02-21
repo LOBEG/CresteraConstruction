@@ -94,6 +94,26 @@ footer .small{font-size:12px;color:rgba(255,255,255,.65)}
 footer ul{margin:10px 0 0;padding-left:18px}
 footer li{color:rgba(255,255,255,.7);font-size:12px}
 
+.cookie-banner{
+  position:fixed;
+  left:14px;right:14px;bottom:14px;
+  max-width:980px;
+  margin:0 auto;
+  z-index:50;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+  padding:14px 14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(11,18,32,.96);
+  color:rgba(255,255,255,.85);
+}
+.cookie-banner a{color:rgba(255,255,255,.92)}
+.cookie-banner-text{margin:0;font-size:13px;flex:1 1 320px;color:rgba(255,255,255,.78)}
+.cookie-banner-actions{display:flex;flex-wrap:wrap;gap:10px}
+
 .reveal{opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease}
 .reveal.in-view{opacity:1;transform:none}
 

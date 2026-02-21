@@ -16,12 +16,72 @@ function setActiveNav() {
   });
 }
 
+function maybeShowCookieNotice() {
+  const key = "cresteraconstructionauthority_cookie_consent_v1";
+  try {
+    const current = localStorage.getItem(key);
+    if (current) return;
+  } catch {
+    return;
+  }
+
+  const banner = document.createElement("div");
+  banner.className = "cookie-banner";
+  banner.setAttribute("role", "dialog");
+  banner.setAttribute("aria-label", "Cookie notice");
+
+  const msg = document.createElement("p");
+  msg.className = "cookie-banner-text";
+  msg.textContent = "We use essential cookies to operate this website. Optional analytics/marketing cookies may be enabled later. ";
+
+  const link = document.createElement("a");
+  link.href = "/cookie-policy.html";
+  link.textContent = "Cookie Policy";
+  msg.appendChild(link);
+  msg.appendChild(document.createTextNode("."));
+
+  const actions = document.createElement("div");
+  actions.className = "cookie-banner-actions";
+
+  const essentialBtn = document.createElement("button");
+  essentialBtn.type = "button";
+  essentialBtn.className = "submit";
+  essentialBtn.textContent = "Essential only";
+
+  const allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = "submit";
+  allBtn.textContent = "Accept optional";
+  allBtn.style.background = "var(--accent)";
+  allBtn.style.color = "var(--charcoal)";
+
+  function setConsent(value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // Ignore storage errors (private mode, disabled storage).
+    }
+    banner.remove();
+  }
+
+  essentialBtn.addEventListener("click", () => setConsent("essential"));
+  allBtn.addEventListener("click", () => setConsent("all"));
+
+  actions.appendChild(essentialBtn);
+  actions.appendChild(allBtn);
+
+  banner.appendChild(msg);
+  banner.appendChild(actions);
+  document.body.appendChild(banner);
+}
+
 async function main() {
   await Promise.all([
     injectPartial("site-header", "/partials/header.html"),
     injectPartial("site-footer", "/partials/footer.html"),
   ]);
   setActiveNav();
+  maybeShowCookieNotice();
 
   const reveal = new IntersectionObserver(
     (entries) => {

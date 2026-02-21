@@ -8,6 +8,8 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const nodemailer = require("nodemailer");
 
+const { registerAdminRoutes } = require("./admin/routes");
+
 const ROOT_DIR = __dirname;
 const PUBLIC_DIR = path.join(ROOT_DIR, "public");
 const DATA_DIR = path.join(ROOT_DIR, "data");
@@ -58,6 +60,8 @@ function createApp() {
     };
     res.type("application/javascript").send(`window.__CRESTARA_CONFIG__=${JSON.stringify(config)};`);
   });
+
+  registerAdminRoutes(app, { dataDir: DATA_DIR, applicationsLogPath: APPLICATIONS_LOG, publicDir: PUBLIC_DIR });
 
   app.use("/assets", express.static(path.join(PUBLIC_DIR, "assets")));
   app.use(express.static(PUBLIC_DIR, { extensions: ["html"] }));
