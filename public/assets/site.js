@@ -35,31 +35,6 @@ async function main() {
     { threshold: 0.12 }
   );
   document.querySelectorAll(".reveal").forEach((el) => reveal.observe(el));
-
-  const consentKey = "crestara_cookie_consent_v1";
-  if (!localStorage.getItem(consentKey)) {
-    const banner = document.createElement("div");
-    banner.className = "cookie-banner";
-    banner.innerHTML = `
-      <div class="cookie-inner">
-        <div>
-          <strong>Cookies</strong>
-          <div class="muted">We use essential cookies for basic site functionality. Optional analytics cookies may be added in the future.</div>
-        </div>
-        <div class="cookie-actions">
-          <a class="cookie-link" href="/cookie-policy.html">Cookie Policy</a>
-          <button class="submit cookie-btn" type="button" data-consent="accepted">Accept</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(banner);
-    banner.querySelectorAll("[data-consent]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        localStorage.setItem(consentKey, "accepted");
-        banner.remove();
-      });
-    });
-  }
 }
 
 main();
