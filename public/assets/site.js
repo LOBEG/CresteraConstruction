@@ -133,6 +133,52 @@ async function main() {
   );
   document.querySelectorAll(".reveal").forEach((el) => reveal.observe(el));
 
+  // Enhancement 4: Floating Navigation Bar — scroll-based shadow
+  const topbar = document.querySelector(".topbar");
+  if (topbar) {
+    const onScroll = () => {
+      if (window.scrollY > 10) {
+        topbar.classList.add("scrolled");
+      } else {
+        topbar.classList.remove("scrolled");
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  // Enhancement 2: Parallax Depth — subtle hero background shift on scroll
+  const heroEl = document.querySelector(".hero.hero-image");
+  if (heroEl) {
+    const onHeroScroll = () => {
+      const scrolled = window.scrollY;
+      const rate = 0.3;
+      heroEl.style.setProperty("--parallax-y", `${scrolled * rate}px`);
+    };
+    window.addEventListener("scroll", onHeroScroll, { passive: true });
+  }
+
+  // Enhancement 1: 3D Card Tilt on Hover — mouse tracking for interactive tilt
+  if (window.matchMedia("(hover: hover)").matches) {
+    document.querySelectorAll(".card, .media-card").forEach((card) => {
+      card.addEventListener("mousemove", (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -4;
+        const rotateY = ((x - centerX) / centerX) * 4;
+        card.style.setProperty("--tilt-rx", `${rotateX}deg`);
+        card.style.setProperty("--tilt-ry", `${rotateY}deg`);
+      });
+      card.addEventListener("mouseleave", () => {
+        card.style.removeProperty("--tilt-rx");
+        card.style.removeProperty("--tilt-ry");
+      });
+    });
+  }
+
   // Avoid leaving below-the-fold content invisible in environments where
   // intersection updates are delayed (e.g., full-page capture / print).
   const REVEAL_FALLBACK_DELAY_MS = 1200;

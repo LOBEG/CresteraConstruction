@@ -36,9 +36,9 @@ a:hover{text-decoration:underline}
   background-image:linear-gradient(90deg,rgba(11,18,32,.86),rgba(11,18,32,.55)),var(--hero-image);
   background-size:cover;
   background-position:center;
-  transform:scale(1.02);
+  transform:scale(1.02) translateY(var(--parallax-y, 0px));
 }
-.hero.hero-image > .container{position:relative}
+.hero.hero-image > .container{position:relative;z-index:1}
 .kicker{display:inline-flex;gap:8px;align-items:center;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:rgba(255,255,255,.85)}
 .kicker .dot{width:8px;height:8px;border-radius:999px;background:var(--accent);display:inline-block}
 .hero h1{margin:10px 0 12px;font-size:40px;line-height:1.12;letter-spacing:.2px}
@@ -113,6 +113,131 @@ footer li{color:rgba(255,255,255,.7);font-size:12px}
 .cookie-banner a{color:rgba(255,255,255,.92)}
 .cookie-banner-text{margin:0;font-size:13px;flex:1 1 320px;color:rgba(255,255,255,.78)}
 .cookie-banner-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+/* --- 3D Enhancements --- */
+
+/* 1. 3D Card Tilt on Hover */
+@media (hover: hover){
+  .card,.media-card{
+    transition:transform .35s ease,box-shadow .35s ease;
+    transform-style:preserve-3d;
+    will-change:transform;
+  }
+  .card:hover,.media-card:hover{
+    transform:perspective(800px) rotateX(var(--tilt-rx, 2deg)) rotateY(var(--tilt-ry, -2deg)) translateZ(6px);
+    box-shadow:0 12px 28px rgba(0,0,0,.10);
+  }
+}
+
+/* 2. Parallax Depth — hero ::before parallax */
+@media (hover: hover){
+  .hero.hero-image::before{
+    transition:transform .1s linear;
+    will-change:transform;
+  }
+}
+
+/* 3. 3D Image Reveal on Scroll — media cards unfold in 3D */
+.media-card.reveal{
+  opacity:0;
+  transform:perspective(600px) rotateX(8deg) translateY(20px);
+  transition:opacity .7s ease,transform .7s ease;
+}
+.media-card.reveal.in-view{
+  opacity:1;
+  transform:perspective(600px) rotateX(0) translateY(0);
+}
+
+/* 4. Floating Navigation Bar */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:40;
+  transition:box-shadow .3s ease,transform .3s ease;
+}
+.topbar.scrolled{
+  box-shadow:0 6px 24px rgba(0,0,0,.25);
+  transform:translateZ(0);
+}
+
+/* 5. 3D Button Press Effects */
+.cta,.submit{
+  transition:transform .15s ease,box-shadow .15s ease;
+  box-shadow:0 4px 12px rgba(0,0,0,.10);
+  transform:translateY(0) translateZ(0);
+}
+.cta:hover,.submit:hover{
+  transform:translateY(-2px) translateZ(4px);
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+.cta:active,.submit:active{
+  transform:translateY(1px) translateZ(0);
+  box-shadow:0 2px 6px rgba(0,0,0,.12);
+  transition-duration:.05s;
+}
+
+/* 6. 3D Step Counter Cards */
+.steps{
+  perspective:1200px;
+}
+.step{
+  transform-style:preserve-3d;
+  transition:transform .4s ease,box-shadow .4s ease;
+}
+@media (hover: hover){
+  .step:hover{
+    transform:perspective(800px) rotateY(-4deg) translateZ(10px);
+    box-shadow:0 14px 32px rgba(0,0,0,.10);
+  }
+}
+.step .num{
+  transition:transform .4s ease;
+  transform:translateZ(0);
+}
+@media (hover: hover){
+  .step:hover .num{
+    transform:translateZ(20px) scale(1.08);
+  }
+}
+
+/* 7. Isometric Hero Background */
+.hero.hero-image::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(30deg, rgba(249,115,22,.04) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,.04) 87.5%),
+    linear-gradient(150deg, rgba(249,115,22,.04) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,.04) 87.5%),
+    linear-gradient(30deg, rgba(249,115,22,.04) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,.04) 87.5%),
+    linear-gradient(150deg, rgba(249,115,22,.04) 12%, transparent 12.5%, transparent 87%, rgba(249,115,22,.04) 87.5%),
+    linear-gradient(60deg, rgba(249,115,22,.06) 25%, transparent 25.5%, transparent 75%, rgba(249,115,22,.06) 75%),
+    linear-gradient(60deg, rgba(249,115,22,.06) 25%, transparent 25.5%, transparent 75%, rgba(249,115,22,.06) 75%);
+  background-size:80px 140px;
+  background-position:0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+  opacity:.5;
+  pointer-events:none;
+  animation:heroGridShift 20s linear infinite;
+}
+@keyframes heroGridShift{
+  0%{background-position:0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px}
+  100%{background-position:80px 140px, 80px 140px, 120px 210px, 120px 210px, 80px 140px, 120px 210px}
+}
+
+/* 8. Depth-Layered Footer */
+footer{
+  perspective:1000px;
+}
+footer .foot-grid > div{
+  transition:transform .4s ease;
+  transform-style:preserve-3d;
+}
+@media (hover: hover){
+  footer .foot-grid > div:hover{
+    transform:translateZ(12px);
+  }
+}
+
+/* --- End 3D Enhancements --- */
 
 .reveal{opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease}
 .reveal.in-view{opacity:1;transform:none}
