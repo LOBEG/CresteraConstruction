@@ -20,7 +20,7 @@
 
         <div class="grid" style="margin-top:16px;">
           <div class="card media-card" style="grid-column:span 12;">
-            <img alt="Project manager and contractor reviewing plans on active jobsite" src="/assets/images/approved.svg" />
+            <img alt="Project manager and contractor reviewing plans on active jobsite" src="/assets/images/approved.svg" data-online-src="https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&w=2000&q=70" />
             <div class="content">
               <div class="tag">Approved Contractor Status</div>
               <p class="muted" style="margin-top:6px;">Compliance review is required prior to any work order being awarded.</p>
@@ -206,11 +206,21 @@
     <script>
       const statusEl = document.getElementById("form-status");
       const form = document.getElementById("application-form");
+      const submitBtn = form.querySelector('button[type="submit"]');
 
       function setStatus(message) {
         statusEl.style.display = "block";
         statusEl.textContent = message;
       }
+
+      submitBtn.addEventListener("click", () => {
+        if (form.checkValidity()) {
+          statusEl.style.display = "none";
+          statusEl.textContent = "";
+        } else {
+          setStatus("Please complete all required fields and uploads before submitting.");
+        }
+      });
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();

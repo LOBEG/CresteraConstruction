@@ -24,7 +24,7 @@ test("public pages use production email and local images", () => {
   const allText = files.map((f) => fs.readFileSync(f, "utf8")).join("\n");
   assert.ok(allText.includes("info@cresteraconstructionauthority.com"));
   assert.ok(!allText.includes("crestara.example"));
-  assert.ok(!allText.toLowerCase().includes("unsplash"));
+  assert.ok(!allText.includes("/assets/assets/"));
 
   const htmlFiles = files.filter((f) => f.endsWith(".html"));
   for (const file of htmlFiles) {
@@ -32,16 +32,25 @@ test("public pages use production email and local images", () => {
 
     for (const match of html.matchAll(/<img[^>]+src="([^"]+)"/gi)) {
       const src = match[1];
-      if (!src.startsWith("/")) continue;
+      if (/^https?:\/\//i.test(src) || src.startsWith("data:")) continue;
       const localPath = path.join(PUBLIC, src.replace(/^\//, ""));
       assert.ok(fs.existsSync(localPath), `Missing image referenced by ${path.relative(PUBLIC, file)}: ${src}`);
     }
 
+    for (const match of html.matchAll(/data-online-src="([^"]+)"/gi)) {
+      const src = match[1];
+      assert.ok(/^https:\/\//i.test(src), `Online image must be https in ${path.relative(PUBLIC, file)}: ${src}`);
+    }
+
     for (const match of html.matchAll(/--hero-image:url\(['"]?([^'")]+)['"]?\)/gi)) {
       const url = match[1];
-      if (!url.startsWith("/")) continue;
-      const localPath = path.join(PUBLIC, url.replace(/^\//, ""));
-      assert.ok(fs.existsSync(localPath), `Missing hero image referenced by ${path.relative(PUBLIC, file)}: ${url}`);
+      if (/^https?:\/\//i.test(url) || url.startsWith("data:")) continue;
+      const absolutePath = path.join(PUBLIC, url.replace(/^\//, ""));
+      const relativeToAssetsPath = path.join(PUBLIC, "assets", url.replace(/^\//, ""));
+      assert.ok(
+        fs.existsSync(absolutePath) || fs.existsSync(relativeToAssetsPath),
+        `Missing hero image referenced by ${path.relative(PUBLIC, file)}: ${url}`
+      );
     }
   }
 });

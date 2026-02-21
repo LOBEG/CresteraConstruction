@@ -75,6 +75,41 @@ function maybeShowCookieNotice() {
   document.body.appendChild(banner);
 }
 
+function maybeUpgradeOnlineImages() {
+  document.querySelectorAll("img[data-online-src]").forEach((img) => {
+    const online = img.getAttribute("data-online-src");
+    const fallbackSrc = img.getAttribute("src") || "/assets/images/hero.svg";
+    if (!online || img.dataset.onlineTried) return;
+    img.dataset.onlineTried = "1";
+
+    const probe = new Image();
+    probe.onload = () => {
+      img.addEventListener(
+        "error",
+        () => {
+          img.src = fallbackSrc;
+        },
+        { once: true }
+      );
+      img.src = online;
+    };
+    probe.onerror = () => undefined;
+    probe.src = online;
+  });
+}
+
+function maybeUpgradeHeroImage() {
+  const el = document.querySelector(".hero.hero-image");
+  if (!el) return;
+  const online = el.getAttribute("data-hero-online");
+  if (!online) return;
+  const img = new Image();
+  img.onload = () => {
+    el.style.setProperty("--hero-image", `url('${online.replace(/'/g, "%27")}')`);
+  };
+  img.src = online;
+}
+
 async function main() {
   await Promise.all([
     injectPartial("site-header", "/partials/header.html"),
@@ -82,6 +117,8 @@ async function main() {
   ]);
   setActiveNav();
   maybeShowCookieNotice();
+  maybeUpgradeOnlineImages();
+  maybeUpgradeHeroImage();
 
   const reveal = new IntersectionObserver(
     (entries) => {
