@@ -1,20 +1,6 @@
-async function injectPartial(id, url) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const resp = await fetch(url, { cache: "no-store" });
-  if (!resp.ok) return;
-  el.innerHTML = await resp.text();
-}
-
-function setActiveNav() {
-  const path = window.location.pathname.replace(/\/$/, "");
-  document.querySelectorAll("[data-nav]").forEach((a) => {
-    const href = (a.getAttribute("href") || "").replace(/\/$/, "");
-    if (href && (href === path || (href === "/index.html" && (path === "" || path === "/")))) {
-      a.setAttribute("aria-current", "page");
-    }
-  });
-}
+// Pages are now fully self-contained HTML — this script only adds a few
+// progressive enhancements (cookie banner, online image upgrades, reveal
+// animations). The page is fully usable without JavaScript.
 
 function maybeShowCookieNotice() {
   const key = "cresteraconstructionauthority_cookie_consent_v1";
@@ -111,11 +97,6 @@ function maybeUpgradeHeroImage() {
 }
 
 async function main() {
-  await Promise.all([
-    injectPartial("site-header", "/partials/header.html"),
-    injectPartial("site-footer", "/partials/footer.html"),
-  ]);
-  setActiveNav();
   maybeShowCookieNotice();
   maybeUpgradeOnlineImages();
   maybeUpgradeHeroImage();

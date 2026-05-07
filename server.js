@@ -15,6 +15,15 @@ const PUBLIC_DIR = path.join(ROOT_DIR, "public");
 const DATA_DIR = path.join(ROOT_DIR, "data");
 const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 const APPLICATIONS_LOG = path.join(DATA_DIR, "applications.jsonl");
+const SUBSCRIBERS_LOG = path.join(DATA_DIR, "email-subscribers.jsonl");
+
+// Consent text shown next to the opt-in checkbox on /email-subscribe.html.
+// Recorded verbatim with every subscription so it can be produced for an SMTP
+// provider audit as proof of opt-in.
+const SUBSCRIBE_CONSENT_TEXT =
+  "I confirm I am authorised to subscribe the business email above and I expressly opt in to receive operational, compliance, and contracting emails from Crestara Construction Autority. I understand I can withdraw consent at any time using the unsubscribe link in every email or by contacting info@cresteraconstructionauthority.com. I have read the Privacy Policy.";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ensureDirSync(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -40,6 +49,13 @@ function createApp() {
   const applicationLimiter = rateLimit({
     windowMs: 10 * 60_000,
     limit: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req, res) => res.status(429).json({ ok: false, error: "Too many requests." }),
+  });
+  const subscribeLimiter = rateLimit({
+    windowMs: 10 * 60_000,
+    limit: 20,
     standardHeaders: true,
     legacyHeaders: false,
     handler: (_req, res) => res.status(429).json({ ok: false, error: "Too many requests." }),
@@ -279,6 +295,126 @@ function createApp() {
       }
     });
   });
+
+  async function appendSubscriberLog(record) {
+    ensureDirSync(DATA_DIR);
+    await fsp.appendFile(SUBSCRIBERS_LOG, `${JSON.stringify(record)}\n`, "utf8");
+  }
+
+  async function sendSubscriberConfirmationEmail(record) {
+    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_TO } = process.env;
+    if (!SMTP_HOST || !SMTP_PORT || !SMTP_FROM || !SMTP_TO) return;
+
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: Number(SMTP_PORT),
+      secure: Number(SMTP_PORT) === 465,
+      auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+    });
+
+    const text = [
+      "New B2B email subscription opt-in.",
+      "",
+      `Subscription ID: ${record.subscriptionId}`,
+      `Timestamp: ${record.timestamp}`,
+      `Source URL: ${record.sourceUrl}`,
+      `IP: ${record.ipAddress}`,
+      `User-Agent: ${record.userAgent}`,
+      "",
+      `Company: ${record.companyName}`,
+      `Contact: ${record.contactName}`,
+      `Email: ${record.email}`,
+      `Role: ${record.role || "N/A"}`,
+      `Trade / business type: ${record.tradeCategory || "N/A"}`,
+      `Region: ${record.region || "N/A"}`,
+      `Referrer note: ${record.referrer || "N/A"}`,
+      "",
+      "Consent text agreed to:",
+      record.consentText,
+    ].join("\n");
+
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: SMTP_TO,
+      subject: `B2B email opt-in – ${record.companyName}`,
+      text,
+    });
+  }
+
+  app.post(
+    "/api/email-subscribe",
+    subscribeLimiter,
+    express.urlencoded({ extended: false, limit: "32kb" }),
+    express.json({ limit: "32kb" }),
+    multer().none(),
+    async (req, res) => {
+      const ipAddress = req.ip || req.connection?.remoteAddress || "";
+      const userAgent = String(req.get("user-agent") || "").slice(0, 500);
+      const body = req.body || {};
+
+      // Honeypot: real users leave the hidden "website" field empty. Bots
+      // typically fill every field, so a non-empty value is silently rejected.
+      if (String(body.website || "").trim() !== "") {
+        return res.status(400).json({ ok: false, error: "Submission rejected." });
+      }
+
+      const recaptcha = await verifyRecaptchaIfEnabled(body.recaptchaToken, ipAddress);
+      if (!recaptcha.ok) return res.status(400).json({ ok: false, error: recaptcha.reason });
+
+      const trim = (v, max) => String(v || "").trim().slice(0, max);
+      const companyName = trim(body.companyName, 200);
+      const contactName = trim(body.contactName, 200);
+      const email = trim(body.email, 320).toLowerCase();
+      const role = trim(body.role, 120);
+      const tradeCategory = trim(body.tradeCategory, 160);
+      const region = trim(body.region, 160);
+      const referrer = trim(body.referrer, 200);
+      const consent = String(body.consent || "").trim().toLowerCase();
+
+      if (!companyName || !contactName || !email) {
+        return res.status(400).json({ ok: false, error: "Missing required fields." });
+      }
+      if (!EMAIL_PATTERN.test(email)) {
+        return res.status(400).json({ ok: false, error: "Please provide a valid business email address." });
+      }
+      if (!(consent === "yes" || consent === "on" || consent === "true")) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "You must tick the consent box to subscribe." });
+      }
+
+      const record = {
+        subscriptionId: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        ipAddress,
+        userAgent,
+        sourceUrl: "/email-subscribe.html",
+        companyName,
+        contactName,
+        email,
+        role,
+        tradeCategory,
+        region,
+        referrer,
+        consent: true,
+        consentText: SUBSCRIBE_CONSENT_TEXT,
+      };
+
+      await appendSubscriberLog(record);
+
+      await Promise.allSettled([sendSubscriberConfirmationEmail(record)]);
+
+      const wantsJson =
+        String(req.get("accept") || "").includes("application/json") ||
+        String(req.get("x-requested-with") || "").toLowerCase() === "xmlhttprequest";
+      if (wantsJson) {
+        return res.json({ ok: true, subscriptionId: record.subscriptionId });
+      }
+
+      // No-JS fallback: redirect to the page with a success flag.
+      return res.redirect(303, "/email-subscribe.html?subscribed=1");
+    }
+  );
 
   app.post(
     "/api/contractor-application",
