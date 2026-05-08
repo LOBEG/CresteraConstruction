@@ -116,7 +116,7 @@ footer li{color:rgba(255,255,255,.7);font-size:12px}
 .cookie-banner-text{margin:0;font-size:13px;flex:1 1 320px;color:rgba(255,255,255,.78)}
 .cookie-banner-actions{display:flex;flex-wrap:wrap;gap:10px}
 
-.reveal{opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease}
+.reveal{opacity:1;transform:none;transition:opacity .6s ease,transform .6s ease}
 .reveal.in-view{opacity:1;transform:none}
 
 @media (max-width: 860px){
